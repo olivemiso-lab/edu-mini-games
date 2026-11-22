@@ -96,6 +96,20 @@
   .card th { color: var(--sub); font-weight: 400; }
   .chart { width: 100%; height: 130px; margin-top: 8px; }
   .card.wide { width: min(820px, 100%); }
+  .tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .tile { border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; }
+  .tile small { display: block; font-size: 12px; color: var(--sub); font-weight: 700; }
+  .tile b { font-size: 21px; font-weight: 800; }
+  .tile b em { font-style: normal; font-size: 13px; font-weight: 600; color: var(--sub); }
+  .tile .res { display: block; font-size: 12px; font-weight: 700; color: var(--warn); }
+  .tile.ok { border: 2px solid var(--accent); padding: 6px 9px; }
+  .tile.ok .res { color: var(--accent); }
+  .sec { margin: 12px 0 4px; font-size: 13px; font-weight: 800; }
+  .built { font-size: 14px; line-height: 1.6; }
+  .pb { display: grid; grid-template-columns: 92px 1fr 46px; gap: 6px; align-items: center; font-size: 13px; margin: 4px 0; }
+  .pb .t { height: 12px; background: #edf0f2; border-radius: 3px; overflow: hidden; }
+  .pb .t i { display: block; height: 100%; background: var(--warn); }
+  .pb small { grid-column: 2 / 4; font-size: 12px; color: var(--sub); margin-top: -3px; }
   .endgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
   .rec { border: 2px solid var(--ink); border-radius: 8px; padding: 10px 12px; }
   .rec small { display: block; font-size: 13px; color: var(--sub); font-weight: 700; }
@@ -548,27 +562,37 @@
     S.over = true; S.month = MONTHS;
     var heron = Math.round(S.eco.heron);
     var win = S.pop >= GOAL_POP && heron >= GOAL_HERON;
-    var rows = Object.keys(P).filter(function (k) { return S.seen[k]; }).map(function (k) {
-      var fixed = S.fixedBy[k] ? Object.keys(S.fixedBy[k]).join(", ") : "-";
-      return "<tr><td>" + P[k].name + "</td><td>" + S.firstAt[k] + "달째</td><td>" + S.seen[k] + "달</td><td>" + fixed + "</td></tr>";
+    var H = S.hist;
+    function avg(k) { return Math.round(H.reduce(function (a, x) { return a + x[k]; }, 0) / H.length); }
+    var peak = { pop: 0, m: 1 }, low = { heron: 99, m: 1 };
+    H.forEach(function (x, n) { if (x.pop > peak.pop) peak = { pop: x.pop, m: Math.max(1, n) }; if (x.heron !== undefined && x.heron < low.heron) low = { heron: x.heron, m: Math.max(1, n) }; });
+    // 지은 시설(처음부터 있던 것 포함, 도로 빼고)
+    var cnt = {}, builtN = 0;
+    for (var i = 0; i < N; i++) for (var j = 0; j < N; j++) {
+      var g = S.grid[i][j];
+      if (!g || ["road", "river", "stumps"].indexOf(g) >= 0 || !B[g]) continue;
+      cnt[g] = (cnt[g] || 0) + 1; builtN++;
+    }
+    var builtTxt = ORDER.filter(function (k) { return cnt[k]; }).map(function (k) { return B[k].name + " <b>" + cnt[k] + "</b>"; }).join(" · ") || "없음";
+    function tile(label, v, unit, ok) {
+      var goal = ok !== undefined;
+      return '<div class="tile' + (ok ? " ok" : "") + '"><small>' + label + '</small><b>' + v + ' <em>' + unit + '</em></b>' +
+        (goal ? '<span class="res">' + (ok ? "목표 이룸" : "목표 못 이룸") + '</span>' : '') + '</div>';
+    }
+    var keys = Object.keys(P).filter(function (k) { return S.seen[k]; }).sort(function (a, b) { return S.seen[b] - S.seen[a]; });
+    var bars = keys.map(function (k) {
+      var fixed = S.fixedBy[k] ? Object.keys(S.fixedBy[k]).join(", ") : "지은 시설 없음";
+      return '<div class="pb"><span>' + P[k].name + '</span><span class="t"><i style="width:' + Math.round(S.seen[k] / MONTHS * 100) + '%"></i></span><b>' + S.seen[k] + '달</b>' +
+        '<small>처음 ' + S.firstAt[k] + '달째 · ' + fixed + '</small></div>';
     }).join("");
-    // 한 줄 기록: 가장 먼저 생긴 문제, 가장 오래 겪은 문제와 그때 지은 시설
-    var SKIP = ["housing"];
-    var ks = Object.keys(S.seen), main = ks.filter(function (k) { return SKIP.indexOf(k) < 0; });
-    if (!main.length) main = ks;
-    var first = main.slice().sort(function (a, b) { return S.firstAt[a] - S.firstAt[b]; })[0];
-    var longest = main.slice().sort(function (a, b) { return S.seen[b] - S.seen[a]; })[0];
-    var built = longest && S.fixedBy[longest] ? Object.keys(S.fixedBy[longest]).join(", ") : "짓지 않음";
-    var line = longest ? P[longest].name + " " + S.seen[longest] + "달 → " + built : "큰 문제 없이 강을 지켰어요";
-    var rec = longest ?
-      '<div class="rec"><small>가장 먼저 생긴 문제</small><div class="big">' + P[first].name + ' <em>' + S.firstAt[first] + '달째</em></div>' +
-      '<small>가장 오래 겪은 문제 → 그때 지은 시설</small><div class="big">' + P[longest].name + ' <em>' + S.seen[longest] + '달</em> → ' + built + '</div></div>' :
-      '<div class="rec"><small>한 줄 기록</small><div class="big">큰 문제 없이 강을 지켰어요</div></div>';
-    var h = "<h2>" + (win ? "사람과 왜가리가 함께 사는 강을 지켰어요!" : "36달이 지났어요") + "</h2>" + "<p>주민 <b>" + S.pop + "</b>명 · 왜가리 <b>" + heron + "</b>마리 · 강 건강 <b>" + S.Q + "</b> · 예산 <b>" + S.money.toLocaleString("ko-KR") + "</b>원</p>" +
-      '<div class="endgrid"><div>' + rec + '<ol class="talk"><li><b>반 전체</b>강물이 더러워졌을 때 어떤 생물이 먼저 줄었나요? 왜가리는 왜 조금 늦게 줄었을까요?</li><li><b>친구와 비교</b>목표를 이룬 친구는 강을 지키는 시설을 언제, 어디에 지었나요? 강 바로 옆에 지은 것은 무엇이었나요?</li><li><b>우리 동네</b>우리 동네 하천이나 강을 깨끗하게 지키려면 우리 집과 학교에서 무엇을 할 수 있을까요?</li></ol></div>' +
-      '<div><canvas class="chart" id="chart"></canvas>' + '<p class="legend"><i style="background:#1f6f5c"></i>주민<i style="background:#2f7fc1"></i>작은 물고기<i style="background:#e0902a"></i>왜가리</p>' +
-      "<p><b>강에 생긴 문제</b></p>" +
-      (rows ? "<table><tr><th>문제</th><th>처음</th><th>겪은 기간</th><th>지은 시설</th></tr>" + rows + "</table>" : "<p>큰 문제 없이 강을 지켰어요.</p>") +
+    var line = keys.length ? keys.slice(0, 3).map(function (k) { return P[k].name + " " + S.seen[k] + "달"; }).join(", ") : "큰 문제 없이 강을 지켰어요.";
+    var h = "<h2>" + (win ? "사람과 왜가리가 함께 사는 강을 지켰어요!" : "36달이 지났어요") + "</h2>" +
+      '<div class="endgrid"><div><div class="tiles">' + tile("주민", S.pop, "/ 300명", S.pop >= GOAL_POP) + tile("왜가리", heron, "/ 6마리", heron >= GOAL_HERON) +
+      tile("가장 많았던 주민", peak.pop, "명 · " + peak.m + "달째") + tile("평균 강 건강", avg("Q"), "") +
+      tile("왜가리가 가장 적을 때", low.heron, "마리 · " + low.m + "달째") + tile("지은 시설", builtN, "개") + '</div>' +
+      '<p class="sec">지은 시설</p><div class="built">' + builtTxt + '</div></div>' +
+      '<div><canvas class="chart" id="chart"></canvas>' + '<p class="legend" style="margin:2px 0 0"><i style="background:#1f6f5c"></i>주민<i style="background:#2f7fc1"></i>작은 물고기<i style="background:#e0902a"></i>왜가리</p>' +
+      '<p class="sec">강 문제를 겪은 기간 (36달 중)</p>' + (bars || "<p>큰 문제 없이 강을 지켰어요.</p>") +
       '</div></div>' +
       '<div class="row"><button class="btn" id="againBtn">다시 하기</button>' + (window.Block ? '<button class="btn send" id="sendBtn">보내기</button>' : '') + '</div>';
     document.getElementById("endCard").innerHTML = h;
@@ -584,8 +608,8 @@
       if (!(window.Block && Block.send)) return;
       try { Block.send({ values: [
         { label: "주민", value: S.pop, unit: "명" }, { label: "왜가리", value: heron, unit: "마리" },
-        { label: "작은 물고기", value: Math.round(S.eco.fish), unit: "마리" }, { label: "강 건강", value: S.Q, unit: "점" },
-        { label: "예산", value: S.money, unit: "원" }, { label: "겪은 문제", value: Object.keys(S.seen).length, unit: "가지" }
+        { label: "작은 물고기", value: Math.round(S.eco.fish), unit: "마리" }, { label: "평균 강 건강", value: avg("Q"), unit: "점" },
+        { label: "지은 시설", value: builtN, unit: "개" }, { label: "겪은 문제", value: Object.keys(S.seen).length, unit: "가지" }
       ], text: line.slice(0, 200) }); sendBtn.disabled = true; sendBtn.textContent = "보냈어요"; } catch (e) {}
     });
   }
