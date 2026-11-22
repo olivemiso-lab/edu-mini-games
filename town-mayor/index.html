@@ -90,6 +90,10 @@
   .card th, .card td { text-align: left; padding: 5px 4px; border-bottom: 1px solid var(--line); }
   .card th { color: var(--sub); font-weight: 400; }
   .chart { width: 100%; height: 130px; margin-top: 8px; }
+  /* 세로로 세운 태블릿: 게임판 위, 목소리 칸 아래 */
+  @media (min-width: 761px) and (orientation: portrait) {
+    .main { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) minmax(220px, 34%); }
+  }
   @media (max-width: 760px) {
     .app { padding: 5px; gap: 5px; }
     .top { gap: 5px; padding: 5px; }

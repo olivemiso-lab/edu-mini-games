@@ -97,6 +97,10 @@
   .chart { width: 100%; height: 130px; margin-top: 8px; }
   .legend { font-size: 12px; color: var(--sub); }
   .legend i { display: inline-block; width: 14px; height: 3px; vertical-align: middle; margin: 0 4px 0 8px; }
+  /* 세로로 세운 태블릿: 게임판 위, 목소리 칸 아래 */
+  @media (min-width: 761px) and (orientation: portrait) {
+    .main { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) minmax(220px, 34%); }
+  }
   @media (max-width: 760px) {
     .app { padding: 5px; gap: 5px; }
     .top { gap: 5px; padding: 5px; }
