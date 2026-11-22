@@ -338,6 +338,7 @@
     geo.ox = r.width / 2;
     var used = N * geo.th + tw * 0.95;
     geo.oy = (r.height - used) / 2 + tw * 0.9;
+    geo.w = r.width; geo.h = r.height;
   }
   function cellTop(i, j) { return { x: geo.ox + (i - j) * geo.tw / 2, y: geo.oy + (i + j) * geo.th / 2 }; }
   function drawSprite(name, i, j, scale, lift) {
@@ -449,6 +450,7 @@
   // ---------- 짓기 ----------
   function pickCell(ev) {
     var r = cv.getBoundingClientRect();
+    if (Math.abs(r.width - (geo.w || 0)) > 1 || Math.abs(r.height - (geo.h || 0)) > 1) resize();
     var x = ev.clientX - r.left - geo.ox, y = ev.clientY - r.top - geo.oy;
     var a = x / (geo.tw / 2), b = y / (geo.th / 2);
     var i = Math.floor((a + b) / 2), j = Math.floor((b - a) / 2);
@@ -699,6 +701,9 @@
 
   S = fresh(); S.sev = problems();
   window.addEventListener("resize", function () { resize(); });
+  // 글꼴·안내 칸·세로 화면 때문에 게임판 칸 크기가 바뀌어도 그림과 누르는 자리를 다시 맞춰요
+  if (window.ResizeObserver) new ResizeObserver(function () { resize(); }).observe(cv);
+  cv.style.touchAction = "manipulation";
   resize(); drawSide(); drawTools(); loop();
 })();
 </script>
