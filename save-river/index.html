@@ -242,7 +242,7 @@
   };
   var FIXKEY = { dirty: "sewage", algae: "wetland", trash: "trashyard", mud: "forest", housing: "village" };
 
-  var N = 7, RIVER = 3, MONTHS = 36, MONTH_SEC = 5;
+  var N = 9, RIVER = 4, MONTHS = 36, MONTH_SEC = 5;
   var GOAL_POP = 300, GOAL_HERON = 6;
   var S;
 
@@ -250,8 +250,8 @@
     var grid = [];
     for (var i = 0; i < N; i++) { grid.push([]); for (var j = 0; j < N; j++) grid[i].push(null); }
     for (var k = 0; k < N; k++) grid[RIVER][k] = "river";
-    grid[1][2] = "village"; grid[5][4] = "village";
-    [[0, 1], [1, 5], [5, 0], [6, 4], [0, 5], [6, 2]].forEach(function (p) { grid[p[0]][p[1]] = "forest"; });
+    grid[2][3] = "village"; grid[6][5] = "village";
+    [[0, 1], [1, 6], [6, 0], [8, 5], [0, 7], [8, 2]].forEach(function (p) { grid[p[0]][p[1]] = "forest"; });
     var s = { grid: grid, money: 800, pop: 60, month: 1, t: 0, paused: false, fast: false, sel: "forest",
       eco: { plant: 60, fish: 50, big: 15, heron: 5 }, Q: 80, sev: {}, seen: {}, firstAt: {}, fixedBy: {}, hist: [], over: false, started: false, tut: -1 };
     S = s;
@@ -674,9 +674,9 @@
   function buildTut() {
     TUT = [
       { text: "강가에 사람들이 더 살고 싶어 해요. 아래에서 반짝이는 마을 카드를 눌러 보세요.", tool: "village", face: "happy" },
-      { text: "좋아요! 강 바로 옆 반짝이는 칸을 눌러 마을을 지어요.", cell: freeNear([[4, 1], [4, 2]]), need: "village", face: "happy" },
+      { text: "좋아요! 강 바로 옆 반짝이는 칸을 눌러 마을을 지어요.", cell: freeNear([[5, 1], [5, 2]]), need: "village", face: "happy" },
       { text: "주민이 먹을 쌀도 필요해요. 반짝이는 논밭 카드를 눌러 보세요.", tool: "farm", face: "happy" },
-      { text: "반짝이는 칸을 눌러 논밭을 지어요.", cell: freeNear([[2, 4], [2, 5]]), need: "farm", face: "happy" },
+      { text: "반짝이는 칸을 눌러 논밭을 지어요.", cell: freeNear([[3, 4], [3, 5]]), need: "farm", face: "happy" },
       { text: "시간이 흐르면 강이 어떻게 될까요? 오른쪽 강 생물 수를 지켜보세요.", wait: true, face: "fish" }
     ];
   }
@@ -713,7 +713,7 @@
         var fix = FIXKEY[top], p = P[top];
         S.tutVoice = top; drawSide();
         TUT.push({ text: "강 생물이 말해요: \"" + p.say + "\" (" + p.name + ") 반짝이는 " + B[fix].name + " 카드를 눌러 보세요.", tool: fix, face: p.who });
-        TUT.push({ text: "반짝이는 칸을 눌러 " + B[fix].name + "을(를) 지어요.", cell: freeNear([[4, 3], [4, 4], [2, 1]]), need: fix, face: p.who });
+        TUT.push({ text: "반짝이는 칸을 눌러 " + B[fix].name + "을(를) 지어요.", cell: freeNear([[5, 3], [5, 4], [3, 1]]), need: fix, face: p.who });
         TUT.push({ text: "잘했어요! 강을 지키는 시설을 지으면 물풀부터 다시 늘고, 물고기와 왜가리가 차례로 돌아와요. 이제 혼자 해 보세요!", done: true, face: "heron" });
         nextTut();
       })();
