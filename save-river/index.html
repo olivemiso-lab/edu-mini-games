@@ -86,6 +86,36 @@
   .cover.show { display: flex; }
   .card { width: min(560px, 100%); max-height: calc(100dvh - 32px); overflow-y: auto; scrollbar-width: none; background: #fff; border-radius: 10px; padding: 18px 20px; }
   .card h2 { margin: 0 0 8px; font-size: 20px; }
+  .intro { width: min(640px, 100%); padding: 0; overflow: hidden auto; }
+  .hero { position: relative; height: 145px; background: #dcefe6; border-bottom: 1px solid var(--line); overflow: hidden; }
+  .hero .sky { position: absolute; inset: 0 0 46% 0; background: #d6ebf6; }
+  .hero img { position: absolute; bottom: 8px; height: auto; }
+  .intro .in { padding: 16px 22px 18px; }
+  .intro h2 { font-size: 28px; margin: 0; letter-spacing: -0.5px; }
+  .intro .sub { margin: 4px 0 14px; color: var(--sub); font-size: 15px; }
+  .goals { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .goals div { border: 2px solid var(--ink); border-radius: 8px; padding: 8px 10px; text-align: center; }
+  .goals small { display: block; font-size: 12px; color: var(--sub); font-weight: 700; }
+  .goals b { font-size: 24px; font-weight: 800; }
+  .goals b em { font-style: normal; font-size: 14px; font-weight: 600; color: var(--sub); }
+  .how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+  .how div { background: #f3f7f9; border-radius: 8px; padding: 8px 6px 10px; text-align: center; }
+  .how img { height: 52px; width: auto; max-width: 70px; object-fit: contain; display: block; margin: 0 auto 4px; }
+  .how span { display: block; font-size: 12px; color: var(--sub); font-weight: 700; }
+  .how b { display: block; font-size: 14px; line-height: 1.35; }
+  .intro .row { margin-top: 16px; }
+  .intro .primary { font-size: 17px; padding: 11px 34px; }
+  @media (max-width: 520px) {
+    .hero { height: 96px; }
+    .intro .in { padding: 12px 14px 14px; }
+    .intro h2 { font-size: 23px; }
+    .intro .sub { font-size: 14px; margin-bottom: 10px; }
+    .goals b { font-size: 19px; }
+    .how img { height: 40px; }
+    .how b { font-size: 13px; }
+    .intro .primary { width: 100%; }
+  }
+
   .card p { margin: 6px 0; line-height: 1.5; }
   .card .goal { display: flex; gap: 10px; align-items: center; margin: 12px 0; padding: 10px; background: #f3f7f9; border-radius: 8px; }
   .card .goal img { width: 56px; }
@@ -169,12 +199,15 @@
 </div>
 
 <div class="cover show" id="intro">
-  <div class="card">
-    <h2>강을 살려라</h2>
-    <p>강가 마을의 이장이 되어 마을을 키워 보세요. 마을과 논밭, 공장, 캠핑장은 돈과 주민을 늘려 주지만 강을 더럽힐 수 있어요.</p>
-    <div class="goal"><img id="introImg" alt=""><div><b>목표</b><br>36달 안에 주민 300명, 왜가리 6마리 넘기기</div></div>
-    <p>강물이 더러워지면 물풀이 줄고, 물풀을 먹는 작은 물고기, 작은 물고기를 먹는 큰 물고기, 큰 물고기를 먹는 왜가리가 차례로 줄어요. 강 생물의 목소리를 듣고 알맞은 시설을 지어 강을 지켜 주세요.</p>
-    <div class="row"><button class="primary" id="startBtn">시작</button></div>
+  <div class="card intro">
+    <div class="hero"><div class="sky"></div><img data-sp="forest" alt="" style="left:2%;width:14.4%"><img data-sp="village" alt="" style="left:16%;width:15.0%"><img data-sp="river" alt="" style="left:31%;width:15.6%"><img data-sp="farm" alt="" style="left:47%;width:15.0%"><img data-sp="wetland" alt="" style="left:62%;width:14.4%"><img data-sp="sewage" alt="" style="left:77%;width:15.0%"><img data-sp="heron" alt="" style="left:36%;width:6.2%;bottom:28%"><img data-sp="fish" alt="" style="left:31%;width:7.5%;bottom:16%"></div>
+    <div class="in">
+      <h2>강을 살려라</h2>
+      <p class="sub">강가 마을을 키우면서 물고기와 왜가리가 사는 강을 지켜요.</p>
+      <div class="goals"><div><small>기간</small><b>36 <em>달 안에</em></b></div><div><small>주민</small><b>300 <em>명</em></b></div><div><small>왜가리</small><b>6 <em>마리</em></b></div></div>
+      <div class="how"><div><img data-sp="deadfish" alt=""><span>1</span><b>강 생물 목소리 듣기</b></div><div><img data-sp="sewage" alt=""><span>2</span><b>강을 지키는 시설 짓기</b></div><div><img data-sp="heron" alt=""><span>3</span><b>왜가리가 돌아와요</b></div></div>
+      <div class="row"><button class="primary" id="startBtn">시작하기</button></div>
+    </div>
   </div>
 </div>
 <div class="cover" id="endCover"><div class="card" id="endCard"></div></div>
@@ -552,7 +585,7 @@
   document.getElementById("fast").addEventListener("click", function () {
     S.fast = !S.fast; this.classList.toggle("on", S.fast);
   });
-  document.getElementById("introImg").src = SP.heron.src;
+  document.querySelectorAll("[data-sp]").forEach(function (el) { el.src = SP[el.getAttribute("data-sp")].src; });
   document.getElementById("startBtn").addEventListener("click", function () {
     document.getElementById("intro").classList.remove("show"); S.started = true; startTut();
   });

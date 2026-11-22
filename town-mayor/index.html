@@ -81,6 +81,36 @@
   .cover.show { display: flex; }
   .card { width: min(560px, 100%); max-height: calc(100dvh - 32px); overflow-y: auto; scrollbar-width: none; background: #fff; border-radius: 10px; padding: 18px 20px; }
   .card h2 { margin: 0 0 8px; font-size: 20px; }
+  .intro { width: min(640px, 100%); padding: 0; overflow: hidden auto; }
+  .hero { position: relative; height: 145px; background: #dcefe6; border-bottom: 1px solid var(--line); overflow: hidden; }
+  .hero .sky { position: absolute; inset: 0 0 46% 0; background: #d6ebf6; }
+  .hero img { position: absolute; bottom: 8px; height: auto; }
+  .intro .in { padding: 16px 22px 18px; }
+  .intro h2 { font-size: 28px; margin: 0; letter-spacing: -0.5px; }
+  .intro .sub { margin: 4px 0 14px; color: var(--sub); font-size: 15px; }
+  .goals { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .goals div { border: 2px solid var(--ink); border-radius: 8px; padding: 8px 10px; text-align: center; }
+  .goals small { display: block; font-size: 12px; color: var(--sub); font-weight: 700; }
+  .goals b { font-size: 24px; font-weight: 800; }
+  .goals b em { font-style: normal; font-size: 14px; font-weight: 600; color: var(--sub); }
+  .how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+  .how div { background: #f3f7f9; border-radius: 8px; padding: 8px 6px 10px; text-align: center; }
+  .how img { height: 52px; width: auto; max-width: 70px; object-fit: contain; display: block; margin: 0 auto 4px; }
+  .how span { display: block; font-size: 12px; color: var(--sub); font-weight: 700; }
+  .how b { display: block; font-size: 14px; line-height: 1.35; }
+  .intro .row { margin-top: 16px; }
+  .intro .primary { font-size: 17px; padding: 11px 34px; }
+  @media (max-width: 520px) {
+    .hero { height: 96px; }
+    .intro .in { padding: 12px 14px 14px; }
+    .intro h2 { font-size: 23px; }
+    .intro .sub { font-size: 14px; margin-bottom: 10px; }
+    .goals b { font-size: 19px; }
+    .how img { height: 40px; }
+    .how b { font-size: 13px; }
+    .intro .primary { width: 100%; }
+  }
+
   .card p { margin: 6px 0; line-height: 1.5; }
   .card .goal { display: flex; gap: 10px; align-items: center; margin: 12px 0; padding: 10px; background: #f3f7f9; border-radius: 8px; }
   .card .goal img { width: 64px; }
@@ -161,12 +191,15 @@
 </div>
 
 <div class="cover show" id="intro">
-  <div class="card">
-    <h2>우리 동네 시장님</h2>
-    <p>빈 땅에 집과 가게, 공장을 지어 사람들이 살고 싶은 동네를 만들어 보세요.</p>
-    <div class="goal"><img id="introImg" alt=""><div><b>목표</b><br>36달 안에 인구 500명, 만족도 70 넘기기</div></div>
-    <p>사람이 많아지면 길이 막히고, 쓰레기가 쌓이고, 공기가 나빠질 수 있어요. 시민들의 목소리를 듣고 알맞은 시설을 지어 문제를 해결해 보세요.</p>
-    <div class="row"><button class="primary" id="startBtn">시작</button></div>
+  <div class="card intro">
+    <div class="hero"><div class="sky"></div><img data-sp="park" alt="" style="left:2%;width:14.4%"><img data-sp="apt" alt="" style="left:15%;width:14.4%"><img data-sp="house" alt="" style="left:30%;width:15.0%"><img data-sp="shop" alt="" style="left:46%;width:15.0%"><img data-sp="bus" alt="" style="left:61%;width:15.0%"><img data-sp="factory" alt="" style="left:76%;width:15.6%"><img data-sp="happy" alt="" style="left:9%;width:8.1%;bottom:28%"><img data-sp="angry" alt="" style="left:88%;width:8.1%;bottom:28%"></div>
+    <div class="in">
+      <h2>우리 동네 시장님</h2>
+      <p class="sub">빈 땅에 집과 가게, 공장을 지어 사람들이 살고 싶은 동네를 만들어요.</p>
+      <div class="goals"><div><small>기간</small><b>36 <em>달 안에</em></b></div><div><small>인구</small><b>500 <em>명</em></b></div><div><small>만족도</small><b>70 <em>넘기기</em></b></div></div>
+      <div class="how"><div><img data-sp="angry" alt=""><span>1</span><b>시민 목소리 듣기</b></div><div><img data-sp="recycle" alt=""><span>2</span><b>알맞은 시설 짓기</b></div><div><img data-sp="happy" alt=""><span>3</span><b>살기 좋은 동네</b></div></div>
+      <div class="row"><button class="primary" id="startBtn">시작하기</button></div>
+    </div>
   </div>
 </div>
 <div class="cover" id="endCover"><div class="card" id="endCard"></div></div>
@@ -521,7 +554,7 @@
   document.getElementById("fast").addEventListener("click", function () {
     S.fast = !S.fast; this.classList.toggle("on", S.fast);
   });
-  document.getElementById("introImg").src = SP.happy.src;
+  document.querySelectorAll("[data-sp]").forEach(function (el) { el.src = SP[el.getAttribute("data-sp")].src; });
   document.getElementById("startBtn").addEventListener("click", function () {
     document.getElementById("intro").classList.remove("show"); S.started = true; startTut();
   });
