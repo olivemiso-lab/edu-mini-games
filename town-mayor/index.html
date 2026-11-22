@@ -90,6 +90,17 @@
   .card th, .card td { text-align: left; padding: 5px 4px; border-bottom: 1px solid var(--line); }
   .card th { color: var(--sub); font-weight: 400; }
   .chart { width: 100%; height: 130px; margin-top: 8px; }
+  .card.wide { width: min(820px, 100%); }
+  .endgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+  .rec { border: 2px solid var(--ink); border-radius: 8px; padding: 10px 12px; }
+  .rec small { display: block; font-size: 13px; color: var(--sub); font-weight: 700; }
+  .rec .big { font-size: 22px; font-weight: 800; line-height: 1.3; margin: 2px 0 8px; }
+  .rec .big:last-child { margin-bottom: 0; }
+  .rec .big em { font-style: normal; font-size: 15px; font-weight: 600; color: var(--sub); }
+  .talk { margin: 12px 0 0; padding-left: 22px; }
+  .talk li { margin: 6px 0; line-height: 1.45; font-size: 15px; }
+  .talk b { display: block; font-size: 12px; color: var(--sub); }
+  @media (max-width: 700px) { .endgrid { grid-template-columns: 1fr; } .rec .big { font-size: 19px; } }
   /* 세로로 세운 태블릿: 게임판 위, 목소리 칸 아래 */
   @media (min-width: 761px) and (orientation: portrait) {
     .main { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) minmax(220px, 34%); }
@@ -193,7 +204,7 @@
     for (var k = 0; k < N; k++) grid[3][k] = "road";
     grid[2][2] = "house"; grid[2][4] = "house";
     return { grid: grid, money: 900, pop: 30, happy: 60, month: 1, t: 0, paused: false, fast: false, sel: "house",
-      sev: {}, seen: {}, fixedBy: {}, hist: [{ pop: 30, happy: 60 }], over: false, started: false, built: 0, tut: -1 };
+      sev: {}, seen: {}, firstAt: {}, fixedBy: {}, hist: [{ pop: 30, happy: 60 }], over: false, started: false, built: 0, tut: -1 };
   }
 
   function count(type) {
@@ -258,7 +269,7 @@
     S.money += Math.round(S.pop * 0.9 + t.tax - t.upkeep);
     // 기록
     Object.keys(sev).forEach(function (k) {
-      if (sev[k] >= 35) S.seen[k] = (S.seen[k] || 0) + 1;
+      if (sev[k] >= 35) { S.seen[k] = (S.seen[k] || 0) + 1; if (!S.firstAt[k]) S.firstAt[k] = S.month; }
     });
     S.sev = sev;
     S.month++;
@@ -507,17 +518,29 @@
     var win = S.pop >= 500 && S.happy >= 70;
     var rows = Object.keys(P).filter(function (k) { return S.seen[k]; }).map(function (k) {
       var fixed = S.fixedBy[k] ? Object.keys(S.fixedBy[k]).join(", ") : "-";
-      return "<tr><td>" + P[k].name + "</td><td>" + S.seen[k] + "달</td><td>" + fixed + "</td></tr>";
+      return "<tr><td>" + P[k].name + "</td><td>" + S.firstAt[k] + "달째</td><td>" + S.seen[k] + "달</td><td>" + fixed + "</td></tr>";
     }).join("");
-    var h = "<h2>" + (win ? "살기 좋은 도시를 만들었어요!" : "36달이 지났어요") + "</h2>" +
-      "<p>인구 <b>" + S.pop + "</b>명 · 만족도 <b>" + S.happy + "</b> · 예산 <b>" + S.money.toLocaleString("ko-KR") + "</b>원</p>" +
-      '<canvas class="chart" id="chart"></canvas>' +
-      '<p style="font-size:12px;color:#5b6873">초록 선: 인구 · 주황 선: 만족도</p>' +
+    // 한 줄 기록: 가장 먼저 생긴 문제, 가장 오래 겪은 문제와 그때 지은 시설
+    var SKIP = ["housing", "jobs"];
+    var ks = Object.keys(S.seen), main = ks.filter(function (k) { return SKIP.indexOf(k) < 0; });
+    if (!main.length) main = ks;
+    var first = main.slice().sort(function (a, b) { return S.firstAt[a] - S.firstAt[b]; })[0];
+    var longest = main.slice().sort(function (a, b) { return S.seen[b] - S.seen[a]; })[0];
+    var built = longest && S.fixedBy[longest] ? Object.keys(S.fixedBy[longest]).join(", ") : "짓지 않음";
+    var line = longest ? P[longest].name + " " + S.seen[longest] + "달 → " + built : "큰 문제 없이 도시를 키웠어요";
+    var rec = longest ?
+      '<div class="rec"><small>가장 먼저 생긴 문제</small><div class="big">' + P[first].name + ' <em>' + S.firstAt[first] + '달째</em></div>' +
+      '<small>가장 오래 겪은 문제 → 그때 지은 시설</small><div class="big">' + P[longest].name + ' <em>' + S.seen[longest] + '달</em> → ' + built + '</div></div>' :
+      '<div class="rec"><small>한 줄 기록</small><div class="big">큰 문제 없이 도시를 키웠어요</div></div>';
+    var h = "<h2>" + (win ? "살기 좋은 도시를 만들었어요!" : "36달이 지났어요") + "</h2>" + "<p>인구 <b>" + S.pop + "</b>명 · 만족도 <b>" + S.happy + "</b> · 예산 <b>" + S.money.toLocaleString("ko-KR") + "</b>원</p>" +
+      '<div class="endgrid"><div>' + rec + '<ol class="talk"><li><b>반 전체</b>사람이 많아지면서 가장 먼저 생긴 문제는 무엇이었나요? 칠판에 내 문제 이름 옆에 붙임딱지를 붙여 보세요.</li><li><b>친구와 비교</b>목표를 이룬 친구는 어떤 순서로 지었나요? 실패한 까닭은 무엇이었나요?</li><li><b>우리 동네</b>우리 학교 주변에서 이런 문제를 본 적이 있나요? 우리 동네에는 어떤 시설이 더 필요할까요?</li></ol></div>' +
+      '<div><canvas class="chart" id="chart"></canvas>' + '<p style="font-size:12px;color:#5b6873">초록 선: 인구 · 주황 선: 만족도</p>' +
       "<p><b>우리 도시에 생긴 문제</b></p>" +
-      (rows ? "<table><tr><th>문제</th><th>겪은 기간</th><th>해결하려고 지은 시설</th></tr>" + rows + "</table>" : "<p>큰 문제 없이 도시를 키웠어요.</p>") +
-      "<p><b>생각해 보기</b> 사람이 많아질수록 어떤 문제가 먼저 생겼나요? 그 문제는 왜 생겼을까요?</p>" +
+      (rows ? "<table><tr><th>문제</th><th>처음</th><th>겪은 기간</th><th>지은 시설</th></tr>" + rows + "</table>" : "<p>큰 문제 없이 도시를 키웠어요.</p>") +
+      '</div></div>' +
       '<div class="row"><button class="btn" id="againBtn">다시 하기</button>' + (window.Block ? '<button class="btn send" id="sendBtn">보내기</button>' : '') + '</div>';
     document.getElementById("endCard").innerHTML = h;
+    document.getElementById("endCard").classList.add("wide");
     document.getElementById("endCover").classList.add("show");
     drawChart();
     document.getElementById("againBtn").addEventListener("click", function () {
@@ -529,8 +552,8 @@
       if (!(window.Block && Block.send)) return;
       try { Block.send({ values: [
         { label: "인구", value: S.pop, unit: "명" }, { label: "만족도", value: S.happy, unit: "점" },
-        { label: "예산", value: S.money, unit: "원" }, { label: "겪은 문제", value: rows ? Object.keys(S.seen).length : 0, unit: "가지" }
-      ], text: Object.keys(S.seen).map(function (k) { return P[k].name; }).join(", ").slice(0, 200) }); sendBtn.disabled = true; sendBtn.textContent = "보냈어요"; } catch (e) {}
+        { label: "예산", value: S.money, unit: "원" }, { label: "겪은 문제", value: Object.keys(S.seen).length, unit: "가지" }
+      ], text: line.slice(0, 200) }); sendBtn.disabled = true; sendBtn.textContent = "보냈어요"; } catch (e) {}
     });
   }
   function drawChart() {
@@ -577,7 +600,7 @@
   }
   function startTut() { buildTut(); S.tut = 0; showTut(); }
   function endTut() {
-    S.tut = -1; S.tutVoice = null; S.month = 1; S.t = 0; S.hist = [{ pop: S.pop, happy: S.happy }]; S.seen = {}; S.fixedBy = {};
+    S.tut = -1; S.tutVoice = null; S.month = 1; S.t = 0; S.hist = [{ pop: S.pop, happy: S.happy }]; S.seen = {}; S.firstAt = {}; S.fixedBy = {};
     showTut(); drawSide();
     toast("이제 혼자 해 보세요! 36달 안에 인구 500명, 만족도 70");
   }
