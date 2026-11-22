@@ -241,15 +241,15 @@
     hospital:{ name: "병원 부족", say: "아플 때 갈 병원이 없어요!", fix: "병원", who: "angry" }
   };
 
-  var N = 7, MONTHS = 36, MONTH_SEC = 5;
+  var N = 9, MONTHS = 36, MONTH_SEC = 5;
   var S;
 
   function fresh() {
     var grid = [];
     for (var i = 0; i < N; i++) { grid.push([]); for (var j = 0; j < N; j++) grid[i].push(null); }
     // 처음부터 있는 것: 가운데 도로 한 줄과 집 두 채
-    for (var k = 0; k < N; k++) grid[3][k] = "road";
-    grid[2][2] = "house"; grid[2][4] = "house";
+    for (var k = 0; k < N; k++) grid[4][k] = "road";
+    grid[3][3] = "house"; grid[3][5] = "house";
     return { grid: grid, money: 900, pop: 30, happy: 60, month: 1, t: 0, paused: false, fast: false, sel: "house",
       sev: {}, seen: {}, firstAt: {}, fixedBy: {}, hist: [{ pop: 30, happy: 60 }], over: false, started: false, built: 0, tut: -1 };
   }
@@ -528,7 +528,9 @@
     var b = B[S.sel];
     h += '<div class="info"><b>' + b.name + '</b>' + (b.cost ? " · " + b.cost + "원" : "") + (b.upkeep ? " · 달마다 " + b.upkeep + "원" : "") + '<br>' + b.info + '</div>';
     var t = totals();
-    h += '<div class="info">집 칸 <b>' + t.homes + '</b> · 일자리 <b>' + t.jobs + '</b><br>달마다 들어오는 돈 약 <b>' + Math.round(S.pop * 0.9 + t.tax - t.upkeep) + '</b>원</div>';
+    var capH = t.homes, capJ = Math.round(t.jobs * 1.3 + 30), lim = capH <= capJ ? "집" : "일자리";
+    h += '<div class="info"><b>인구는 어디까지 늘까?</b><br>집으로 <b>' + capH + '</b>명 · 일자리로 <b>' + capJ + '</b>명<br>지금은 <b style="color:var(--warn)">' + lim + '</b> 때문에 ' + Math.min(capH, capJ) + '명까지만 늘어요.' +
+      '<br>달마다 들어오는 돈 약 <b>' + Math.round(S.pop * 0.9 + t.tax - t.upkeep) + '</b>원</div>';
     document.getElementById("side").innerHTML = h;
   }
 
@@ -639,9 +641,9 @@
   function buildTut() {
     TUT = [
       { text: "사람들이 일할 곳부터 만들어요. 아래에서 반짝이는 상가 카드를 눌러 보세요.", tool: "shop", face: "happy" },
-      { text: "좋아요! 이제 땅 위에 반짝이는 칸을 눌러 상가를 지어요.", cell: freeNear([[4, 2], [4, 3]]), need: "shop", face: "happy" },
+      { text: "좋아요! 이제 땅 위에 반짝이는 칸을 눌러 상가를 지어요.", cell: freeNear([[5, 3], [5, 4]]), need: "shop", face: "happy" },
       { text: "일자리가 생겼어요. 이번엔 사람들이 살 아파트 카드를 눌러 보세요.", tool: "apt", face: "happy" },
-      { text: "반짝이는 칸을 눌러 아파트를 지어요.", cell: freeNear([[1, 2], [1, 3]]), need: "apt", face: "happy" },
+      { text: "반짝이는 칸을 눌러 아파트를 지어요.", cell: freeNear([[2, 3], [2, 4]]), need: "apt", face: "happy" },
       { text: "시간이 흐르면 사람들이 이사 와요. 잠깐 지켜보세요.", wait: true, face: "happy" }
     ];
   }
@@ -679,7 +681,7 @@
         var fix = FIXKEY[top], p = P[top];
         S.tutVoice = top; drawSide();
         TUT.push({ text: "시민이 말해요: \"" + p.say + "\" (" + p.name + ") 반짝이는 " + B[fix].name + " 카드를 눌러 보세요.", tool: fix, face: "angry" });
-        TUT.push({ text: "반짝이는 칸을 눌러 " + B[fix].name + "을(를) 지어요.", cell: freeNear([[5, 2], [5, 3], [2, 3]]), need: fix, face: "angry" });
+        TUT.push({ text: "반짝이는 칸을 눌러 " + B[fix].name + "을(를) 지어요.", cell: freeNear([[6, 3], [6, 4], [3, 4]]), need: fix, face: "angry" });
         TUT.push({ text: "잘했어요! 시민 목소리를 듣고 알맞은 시설을 지으면 만족도가 올라가요. 이제 혼자 도시를 키워 보세요!", done: true, face: "happy" });
         nextTut();
       })();
