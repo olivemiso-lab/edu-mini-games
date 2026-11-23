@@ -674,7 +674,7 @@
       '<div><canvas class="chart" id="chart"></canvas>' + '<p class="legend" style="margin:2px 0 0"><i style="background:#1f6f5c"></i>주민<i style="background:#2f7fc1"></i>작은 물고기<i style="background:#e0902a"></i>왜가리</p>' +
       '<p class="sec">강 문제를 겪은 기간 (36달 중)</p>' + (bars || "<p>큰 문제 없이 강을 지켰어요.</p>") +
       '</div></div>' +
-      '<div class="row"><button class="btn" id="againBtn">다시 하기</button>' + (window.Block ? '<button class="btn send" id="sendBtn">보내기</button>' : '') + '</div>';
+      '<div class="row"><button class="btn" id="againBtn">다시 하기</button>' + (window.Block || inBlockFrame() ? '<button class="btn send" id="sendBtn">보내기</button>' : '') + '</div>';
     document.getElementById("endCard").innerHTML = h;
     document.getElementById("endCard").classList.add("wide");
     document.getElementById("endCover").classList.add("show");
@@ -685,13 +685,28 @@
     });
     var sendBtn = document.getElementById("sendBtn");
     if (sendBtn) sendBtn.addEventListener("click", function () {
-      if (!(window.Block && Block.send)) return;
-      try { Block.send({ values: [
+      try { postResult({ values: [
         { label: "주민", value: S.pop, unit: "명" }, { label: "왜가리", value: heron, unit: "마리" },
         { label: "작은 물고기", value: Math.round(S.eco.fish), unit: "마리" }, { label: "평균 강 건강", value: avg("Q"), unit: "점" },
         { label: "지은 시설", value: builtN, unit: "개" }, { label: "겪은 문제", value: Object.keys(S.seen).length, unit: "가지" }
       ], text: line.slice(0, 200) }); sendBtn.disabled = true; sendBtn.textContent = "보냈어요"; } catch (e) {}
     });
+  }
+  // 결과 보내기: 블록에 파일로 올렸을 때는 Block.send, 웹 링크로 올렸을 때는 블록 화면(부모 창)에 postMessage
+  function inBlockFrame() {
+    if (window.parent === window) return false;
+    var from = "";
+    try { if (location.ancestorOrigins && location.ancestorOrigins.length) from = location.ancestorOrigins[0]; } catch (e) {}
+    if (!from) from = document.referrer || "";
+    return /mizayen-block/.test(from);
+  }
+  function postResult(d) {
+    var vals = d.values.slice(0, 10).map(function (v) {
+      var o = { label: String(v.label).slice(0, 20), value: v.value }; if (v.unit) o.unit = v.unit; return o;
+    });
+    var data = { values: vals, text: String(d.text || "").slice(0, 200) };
+    if (window.Block && Block.send) { Block.send(data); return; }
+    if (window.parent !== window) window.parent.postMessage({ block: 1, type: "response", data: data }, "*");
   }
   function drawChart() {
     var c = document.getElementById("chart"), r = c.getBoundingClientRect();
