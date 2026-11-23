@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>강을 살려라</title>
 <script type="application/json" id="block-record">
-{"kit": "v0.9", "ai": "Claude Code (Claude Opus 5.5) + Magnific 그림", "tries": 1, "asked": "생태계 게임 좋다. 환경 계기교육으로도 쓸 수 있음", "notes": "우리 동네 시장님(도시 문제) 틀을 그대로 써서 강 생태계 판으로 만듦. 마을·논밭·공장·캠핑장이 강을 더럽히고, 물풀→작은 물고기→큰 물고기→왜가리 먹이 사슬이 차례로 줄어드는 것을 봄. 하수 처리장·숲·습지·쓰레기 수거장으로 되살림."}
+{"kit": "v0.9", "ai": "Claude Code (Claude Opus 5.5) + Magnific 그림", "tries": 9, "asked": "생태계 게임 좋다. 환경 계기교육으로도 쓸 수 있음", "notes": "우리 동네 시장님 틀로 강 생태계 판을 만듦. 하수·비료·쓰레기·흙탕물이 물풀→작은 물고기→큰 물고기→왜가리를 차례로 줄임. 고친 점: 강물 색 변화, 목표 칸 늘 보이기, 끝 화면 통계, 첫 화면, 9×9 판, 태블릿 누르는 자리 어긋남, 블록 안에서 느린 것(1초 30번 그리기)."}
 </script>
 <style>
   :root {
@@ -153,6 +153,32 @@
   .legend { font-size: 12px; color: var(--sub); }
   .legend i { display: inline-block; width: 14px; height: 3px; vertical-align: middle; margin: 0 4px 0 8px; }
   /* 세로로 세운 태블릿: 게임판 위, 목소리 칸 아래 */
+  /* 낮은 화면(블록 칸 안 등): 위쪽·아래쪽을 줄여 게임판을 크게 */
+  @media (min-width: 761px) and (max-height: 700px) {
+    .app { padding: 4px; gap: 4px; }
+    .top { padding: 3px 6px; gap: 6px; }
+    .top h1 { font-size: 15px; }
+    .box { padding: 2px 8px; min-width: 96px; gap: 1px; }
+    .box.ok { padding: 1px 7px; }
+    .box .v { font-size: 17px; }
+    .box .bar { height: 6px; }
+    .goalrow { padding-top: 2px; font-size: 13px; }
+    .ctrl .btn { padding: 4px 9px; }
+    .main { grid-template-columns: minmax(0, 1fr) 230px; gap: 4px; }
+    .tools { padding: 4px; gap: 4px; }
+    .tool { width: 74px; padding: 2px 1px 3px; }
+    .tool.on { padding: 1px 0 2px; }
+    .tool img { width: 38px; height: 28px; }
+    .side-in { padding: 8px 10px; }
+  }
+  @media (min-width: 761px) and (max-height: 520px) {
+    .goalrow { display: none; }
+    .box small { font-size: 12px; }
+    .tool em { display: none; }
+  }
+  @media (min-width: 761px) and (max-width: 1000px) {
+    .main { grid-template-columns: minmax(0, 1fr) 220px; }
+  }
   @media (min-width: 761px) and (orientation: portrait) {
     .main { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) minmax(220px, 34%); }
   }
@@ -187,6 +213,7 @@
     <span class="ctrl">
       <button class="btn" id="pause">멈춤</button>
       <button class="btn" id="fast">빠르게</button>
+      <button class="btn" id="fullBtn" hidden>크게 보기</button>
     </span>
     <div class="goalrow">목표 <span>36달 안에 주민 300명, 왜가리 6마리 넘기기</span></div>
   </header>
@@ -581,6 +608,24 @@
     });
   }
 
+  (function () {
+    var fb = document.getElementById("fullBtn"), de = document.documentElement;
+    var can = document.fullscreenEnabled || document.webkitFullscreenEnabled;
+    if (!can) return;
+    fb.hidden = false;
+    fb.addEventListener("click", function () {
+      var on = document.fullscreenElement || document.webkitFullscreenElement;
+      try {
+        if (on) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+        else (de.requestFullscreen || de.webkitRequestFullscreen).call(de);
+      } catch (e) {}
+    });
+    function sync() {
+      var on = document.fullscreenElement || document.webkitFullscreenElement;
+      fb.textContent = on ? "작게 보기" : "크게 보기"; fb.classList.toggle("on", !!on);
+    }
+    document.addEventListener("fullscreenchange", sync); document.addEventListener("webkitfullscreenchange", sync);
+  })();
   document.getElementById("pause").addEventListener("click", function () {
     S.paused = !S.paused; this.textContent = S.paused ? "계속" : "멈춤"; this.classList.toggle("on", S.paused);
   });
