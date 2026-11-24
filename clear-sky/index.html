@@ -291,7 +291,7 @@
     jobs:    { name: "일자리 부족", say: "일할 곳이 있으면 이사 올 사람이 많아요!", fix: "상가, 공장", who: "angry", key: "shop" }
   };
 
-  var N = 9, MONTHS = 12, DAYS = 30, DAY_SEC = 0.3, GOAL_POP = 300, GOAL_BAD = 60;
+  var N = 9, MONTHS = 12, DAYS = 30, DAY_SEC = 0.6, GOAL_POP = 300, GOAL_BAD = 60;
   // 바람이 실어 오는 먼지(달마다 기본값, ㎍/㎥): 겨울·봄에 많고 여름에 적어요
   var OUT = { 1: 22, 2: 21, 3: 23, 4: 18, 5: 13, 6: 9, 7: 6, 8: 5, 9: 6, 10: 9, 11: 15, 12: 19 };
   var RAIN = { 1: .12, 2: .12, 3: .15, 4: .2, 5: .25, 6: .35, 7: .5, 8: .45, 9: .3, 10: .18, 11: .15, 12: .12 };
@@ -305,7 +305,7 @@
     for (var i = 0; i < N; i++) { grid.push([]); for (var j = 0; j < N; j++) grid[i].push(null); }
     for (var k = 0; k < N; k++) grid[4][k] = "road";
     grid[3][3] = "house"; grid[3][5] = "house"; grid[6][6] = "coal"; grid[5][6] = "factory";
-    return { grid: grid, money: 1200, pop: 30, happy: 62, month: 1, day: 1, t: 0, paused: false, fast: false, sel: "house",
+    return { grid: grid, money: 2000, pop: 30, happy: 62, month: 1, day: 1, t: 0, paused: false, fast: false, sel: "house",
       pm: 20, outToday: 15, localToday: 5, rainToday: false, eventToday: false,
       days: { good: 0, normal: 0, bad: 0, vbad: 0 }, monthBad: 0, monthPm: [], recentBad: 0, sumLocal: 0, sumOut: 0, nDays: 0,
       sev: {}, seen: {}, firstAt: {}, fixedBy: {}, hist: [{ pop: 30, happy: 62, pm: 20 }], over: false, started: false, built: 0, tut: -1 };
@@ -391,7 +391,7 @@
     var grow = (room - S.pop) * 0.5;
     if (S.happy < 40) grow = Math.min(grow, -(40 - S.happy) * 0.8);
     S.pop = Math.max(0, Math.round(S.pop + clamp(grow, -40, 80)));
-    S.money += Math.round(S.pop * 1.0 + t.tax - t.upkeep);
+    S.money += Math.round(150 + S.pop * 1.2 + t.tax - t.upkeep);
     Object.keys(sev).forEach(function (k) { if (sev[k] >= 35) { S.seen[k] = (S.seen[k] || 0) + 1; if (!S.firstAt[k]) S.firstAt[k] = S.month; } });
     var avg = S.monthPm.length ? Math.round(S.monthPm.reduce(function (a, b) { return a + b; }, 0) / S.monthPm.length) : S.pm;
     S.hist.push({ pop: S.pop, happy: S.happy, pm: avg, bad: S.monthBad, m: calMonth(S.month) });
@@ -586,7 +586,7 @@
     var t = totals(), capH = t.homes, capJ = Math.round(t.jobs * 1.3 + 30);
     var lim = t.demand > t.supply ? "전기" : capH <= capJ ? "집" : "일자리";
     h += '<div class="info"><b>주민은 어디까지 늘까?</b><br>집으로 <b>' + capH + '</b>명 · 일자리로 <b>' + capJ + '</b>명<br>전기 <b' + (t.demand > t.supply ? ' style="color:var(--warn)"' : '') + '>' + t.demand + ' / ' + t.supply + '</b> (쓰는 양 / 만드는 양)' +
-      '<br>지금은 <b style="color:var(--warn)">' + lim + '</b> 때문에 더 늘기 어려워요.<br>달마다 들어오는 돈 약 <b>' + Math.round(S.pop * 1.0 + t.tax - t.upkeep) + '</b>원</div>';
+      '<br>지금은 <b style="color:var(--warn)">' + lim + '</b> 때문에 더 늘기 어려워요.<br>달마다 들어오는 돈 약 <b>' + Math.round(150 + S.pop * 1.2 + t.tax - t.upkeep) + '</b>원</div>';
     document.getElementById("side").innerHTML = h; drawAir();
   }
   function drawAir() {
